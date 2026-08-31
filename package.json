@@ -1,0 +1,10 @@
+{
+  "name": "recovery-control-plane",
+  "private": true,
+  "packageManager": "pnpm@11.15.1",
+  "scripts": {
+    "web:dev": "pnpm --filter @recovery-control-plane/web dev",
+    "web:build": "pnpm --filter @recovery-control-plane/web build",
+    "web:lint": "pnpm --filter @recovery-control-plane/web lint"
+  }
+}

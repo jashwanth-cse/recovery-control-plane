@@ -1,0 +1,4 @@
+Alembic migrations for the Revenue Recovery Control Plane.
+
+Phase 0 contains only a foundation migration so the database pipeline can be verified.
+Domain schema starts in Phase 1.
