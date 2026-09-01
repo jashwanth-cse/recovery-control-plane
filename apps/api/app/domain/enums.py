@@ -1,0 +1,68 @@
+from enum import Enum
+
+
+class CustomerConsentStatus(str, Enum):
+    UNKNOWN = "UNKNOWN"
+    OPTED_IN = "OPTED_IN"
+    OPTED_OUT = "OPTED_OUT"
+
+
+class SourceType(str, Enum):
+    PAYMENT = "PAYMENT"
+    ORDER = "ORDER"
+    PAYMENT_LINK = "PAYMENT_LINK"
+
+
+class RecoveryCaseStatus(str, Enum):
+    AT_RISK = "AT_RISK"
+    ELIGIBILITY_CHECK = "ELIGIBILITY_CHECK"
+    ASSESSING = "ASSESSING"
+    DECISION_READY = "DECISION_READY"
+    POLICY_CHECK = "POLICY_CHECK"
+    ACTION_PENDING = "ACTION_PENDING"
+    EXECUTING = "EXECUTING"
+    ACTION_FAILED = "ACTION_FAILED"
+    REASSESS = "REASSESS"
+    NEXT_ACTION = "NEXT_ACTION"
+    RECOVERED = "RECOVERED"
+    STOPPED = "STOPPED"
+    EXPIRED = "EXPIRED"
+    ESCALATED = "ESCALATED"
+
+
+class ActionType(str, Enum):
+    RECOVERY_LINK = "RECOVERY_LINK"
+    PAYMENT_METHOD_UPDATE_PROMPT = "PAYMENT_METHOD_UPDATE_PROMPT"
+    DELAY = "DELAY"
+    STOP = "STOP"
+    ESCALATE = "ESCALATE"
+
+
+class RecoveryActionStatus(str, Enum):
+    PENDING = "PENDING"
+    SCHEDULED = "SCHEDULED"
+    EXECUTING = "EXECUTING"
+    SUCCEEDED = "SUCCEEDED"
+    FAILED = "FAILED"
+    BLOCKED = "BLOCKED"
+    CANCELLED = "CANCELLED"
+
+
+class ExperimentGroup(str, Enum):
+    CONTROL = "CONTROL"
+    TREATMENT = "TREATMENT"
+
+
+class ExperimentStatus(str, Enum):
+    DRAFT = "DRAFT"
+    RUNNING = "RUNNING"
+    COMPLETED = "COMPLETED"
+    PAUSED = "PAUSED"
+
+
+class AuditActorType(str, Enum):
+    SYSTEM = "SYSTEM"
+    POLICY = "POLICY"
+    MODEL = "MODEL"
+    HUMAN = "HUMAN"
+    RAZORPAY = "RAZORPAY"

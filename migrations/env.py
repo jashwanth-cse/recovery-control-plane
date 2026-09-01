@@ -3,13 +3,15 @@ from logging.config import fileConfig
 from alembic import context
 
 from app.core.config import get_settings
+from app.db.base import Base
+from app.db import models  # noqa: F401
 
 config = context.config
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-target_metadata = None
+target_metadata = Base.metadata
 
 
 def get_database_url() -> str:

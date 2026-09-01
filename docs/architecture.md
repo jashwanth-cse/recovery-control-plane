@@ -52,6 +52,30 @@ The API exposes:
 - `GET /health` for liveness
 - `GET /health/live` for liveness aliases used by infrastructure
 - `GET /health/ready` for dependency readiness checks
+- `GET /api/cases` for Recovery Case listing
+- `GET /api/cases/{case_id}` for Recovery Case lookup
+- `POST /api/cases` for direct Phase 1 Recovery Case creation
+- `PATCH /api/cases/{case_id}/status` for validated lifecycle transitions
+
+## Phase 1 Domain Model
+
+The Phase 1 schema implements the conceptual tables from the plan:
+
+- `merchants`
+- `customers`
+- `orders`
+- `payments`
+- `payment_links`
+- `recovery_cases`
+- `recovery_features`
+- `recovery_decisions`
+- `recovery_actions`
+- `action_outcomes`
+- `experiments`
+- `experiment_assignments`
+- `audit_events`
+
+Recovery Case lifecycle rules live in `app.domain.recovery_case`. Application code should use these centralized transitions instead of scattering status strings.
 
 ## Financial Safety Model
 

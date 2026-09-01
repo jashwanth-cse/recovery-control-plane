@@ -12,7 +12,7 @@ class Settings(BaseSettings):
         default="postgresql+psycopg://recovery:recovery@localhost:5432/recovery_control_plane"
     )
     redis_url: str = "redis://localhost:6379/0"
-    cors_origins: list[str] = ["http://localhost:3000"]
+    cors_origins: list[str] = ["http://localhost:3000", "http://localhost:13000"]
 
     model_config = SettingsConfigDict(
         env_file=".env",
