@@ -77,6 +77,30 @@ The Phase 1 schema implements the conceptual tables from the plan:
 
 Recovery Case lifecycle rules live in `app.domain.recovery_case`. Application code should use these centralized transitions instead of scattering status strings.
 
+## Phase 2 Razorpay Boundary
+
+```text
+Application service
+      ↓
+PaymentGateway protocol
+      ↓
+RazorpayPaymentGateway
+      ↓
+RazorpayClient
+      ↓
+Verified Razorpay v1 endpoint
+```
+
+The provider-neutral gateway exposes only order/payment reads and Payment Link
+create, notification/resend, and cancellation. Typed request and response models
+prevent raw provider payloads from leaking into business logic. HTTP transport is
+injectable for contract tests, and provider failures are normalized before they
+cross the integration boundary.
+
+The adapter factory rejects missing credentials and live-mode keys. No adapter
+operation is automatically invoked at startup, and Phase 2 adds no unrestricted
+execution API.
+
 ## Financial Safety Model
 
 No LLM or model may execute arbitrary financial actions. The required sequence is:

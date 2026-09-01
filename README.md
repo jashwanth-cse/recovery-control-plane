@@ -2,7 +2,7 @@
 
 Revenue Recovery Control Plane is an AI-assisted decision and measurement layer for Razorpay merchants. It is intended to unify revenue-at-risk, recommend economically sensible recovery interventions, gate every financial action through deterministic policy, execute only supported Razorpay Test Mode actions, and measure recovered revenue separately from incremental recovered revenue.
 
-This repository is implemented phase by phase from [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). Phase 0 created the runnable foundation; Phase 1 adds the core domain schema and Recovery Case lifecycle.
+This repository is implemented phase by phase from [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). Phase 0 created the runnable foundation, Phase 1 added the core domain schema and Recovery Case lifecycle, and Phase 2 adds the bounded Razorpay Test Mode adapter.
 
 ## Implemented Scope
 
@@ -25,9 +25,21 @@ Implemented in Phase 1:
 - Idempotent development seed command
 - Unit tests for lifecycle and repository behavior
 
+Implemented in Phase 2:
+
+- Provider-neutral `PaymentGateway` contract
+- Razorpay Basic Auth client with secret-safe configuration
+- Typed order, payment, Payment Link, and notification contracts
+- Order and payment reads
+- Recovery Payment Link creation
+- Payment Link email/SMS notification and resend
+- Payment Link cancellation
+- Normalized configuration, transport, provider, and response errors
+- Mock-transport contract tests for every supported operation
+
 Not implemented yet:
 
-- Razorpay API calls or webhooks
+- Webhook ingestion or case creation from Razorpay events
 - AI/ML decisions, policy engine, recovery execution, or monetary metrics
 
 ## Run Locally
@@ -102,6 +114,15 @@ With the API running, Recovery Cases can be checked at:
 - `GET /api/cases/{case_id}`
 - `POST /api/cases`
 - `PATCH /api/cases/{case_id}/status`
+
+## Razorpay Test Mode Adapter
+
+Set `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET` in `.env` to construct a real
+Test Mode gateway. Live keys are rejected by default. The API and web services
+still start when credentials are absent; adapter construction then fails closed.
+
+See [docs/razorpay-adapter.md](docs/razorpay-adapter.md) for the verified endpoint
+contract, configuration, safety boundary, and test strategy.
 
 ## Frontend Development
 

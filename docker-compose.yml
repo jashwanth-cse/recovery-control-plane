@@ -38,6 +38,11 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://recovery:recovery@postgres:5432/recovery_control_plane}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID:-}
+      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET:-}
+      RAZORPAY_API_BASE_URL: ${RAZORPAY_API_BASE_URL:-https://api.razorpay.com/v1}
+      RAZORPAY_TIMEOUT_SECONDS: ${RAZORPAY_TIMEOUT_SECONDS:-10}
+      RAZORPAY_TEST_MODE_ONLY: ${RAZORPAY_TEST_MODE_ONLY:-true}
     depends_on:
       postgres:
         condition: service_healthy

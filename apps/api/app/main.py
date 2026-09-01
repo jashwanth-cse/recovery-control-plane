@@ -26,8 +26,8 @@ def create_app() -> FastAPI:
     settings = get_settings()
     app = FastAPI(
         title=settings.app_name,
-        version="0.2.0-phase1",
-        summary="Domain API for the Revenue Recovery Control Plane.",
+        version="0.3.0-phase2",
+        summary="Revenue recovery domain API with a bounded Razorpay adapter.",
         lifespan=lifespan,
     )
 

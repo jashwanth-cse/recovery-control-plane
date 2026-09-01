@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from pydantic import Field
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -13,6 +13,11 @@ class Settings(BaseSettings):
     )
     redis_url: str = "redis://localhost:6379/0"
     cors_origins: list[str] = ["http://localhost:3000", "http://localhost:13000"]
+    razorpay_key_id: str | None = None
+    razorpay_key_secret: SecretStr | None = None
+    razorpay_api_base_url: str = "https://api.razorpay.com/v1"
+    razorpay_timeout_seconds: float = Field(default=10.0, gt=0, le=60)
+    razorpay_test_mode_only: bool = True
 
     model_config = SettingsConfigDict(
         env_file=".env",
