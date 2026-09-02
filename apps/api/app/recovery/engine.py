@@ -336,6 +336,16 @@ class RecoveryCaseEngine:
                 if merchant is not None:
                     merchants[merchant.id] = merchant
 
+        if envelope.account_id and account_merchant is None:
+            mapped_owners = [
+                merchant
+                for merchant in merchants.values()
+                if merchant.razorpay_account_id is not None
+            ]
+            if mapped_owners:
+                raise RecoveryCaseOwnershipError(
+                    "Webhook account does not match local resource ownership."
+                )
         if len(merchants) > 1:
             raise RecoveryCaseOwnershipError(
                 "Webhook account and local resource ownership do not match."

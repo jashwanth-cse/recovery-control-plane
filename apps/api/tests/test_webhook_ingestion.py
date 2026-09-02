@@ -221,7 +221,7 @@ def payload(event: str) -> bytes:
             "event": event,
             "contains": list(entities),
             "payload": entities,
-            "created_at": 1760000000,
+            "created_at": int(datetime.now(timezone.utc).timestamp()),
         },
         separators=(",", ":"),
     ).encode()

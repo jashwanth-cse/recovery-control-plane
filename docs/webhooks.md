@@ -57,15 +57,13 @@ Reconciliation reads current Razorpay state for the referenced payment, order,
 or Payment Link. This prevents a late webhook from overwriting newer local state.
 Only a minimized state snapshot is stored as reconciliation evidence.
 
-## Scope Boundary
+## Recovery Case Handoff
 
-Phase 3 may update an existing local payment, order, or Payment Link and correlate
-the event to an existing Recovery Case. It does not:
+After reconciliation, Phase 4 consumes only current provider state and the
+verified event envelope. It can create a source-backed Recovery Case, correlate a
+Payment Link, or apply a terminal recovery, stop, or expiration transition. A
+mapped webhook account and any known local resource owner must agree.
 
-- create a Recovery Case
-- transition a Recovery Case
-- create, notify, or cancel a Payment Link
-- count revenue as recovered
-
-Those behaviors belong to later phases and must consume the verified event record
-rather than raw webhook input.
+Webhook processing still does not create, notify, or cancel a Payment Link, run an
+AI decision, execute a financial action, or aggregate revenue. Those remain later
+phase responsibilities.

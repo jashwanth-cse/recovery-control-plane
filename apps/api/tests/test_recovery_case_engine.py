@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import sessionmaker
@@ -7,7 +8,14 @@ from sqlalchemy.pool import StaticPool
 
 from app.core.config import Settings, get_settings
 from app.db.base import Base
-from app.db.models import AuditEvent, Customer, Merchant, Order, RecoveryCase
+from app.db.models import (
+    AuditEvent,
+    Customer,
+    Merchant,
+    Order,
+    PaymentLink,
+    RecoveryCase,
+)
 from app.db.session import get_session
 from app.domain.enums import (
     CustomerConsentStatus,
@@ -15,7 +23,7 @@ from app.domain.enums import (
     SourceType,
 )
 from app.main import create_app
-from app.recovery.engine import RecoveryCaseEngine
+from app.recovery.engine import RecoveryCaseEngine, RecoveryCaseOwnershipError
 from app.repositories.recovery_cases import RecoveryCaseRepository
 from app.webhooks.models import RazorpayWebhookEnvelope
 from app.webhooks.reconciliation import ReconciliationResult
@@ -42,13 +50,18 @@ def merchant(session, *, status="ACTIVE", account_id="acc_case_engine"):
     return value
 
 
-def envelope(event: str, now: datetime) -> RazorpayWebhookEnvelope:
+def envelope(
+    event: str,
+    now: datetime,
+    *,
+    account_id: str = "acc_case_engine",
+) -> RazorpayWebhookEnvelope:
     entity_name = "payment_link" if event.startswith("payment_link.") else "payment"
     resource_id = "plink_case123" if entity_name == "payment_link" else "pay_case123"
     return RazorpayWebhookEnvelope.model_validate(
         {
             "entity": "event",
-            "account_id": "acc_case_engine",
+            "account_id": account_id,
             "event": event,
             "contains": [entity_name],
             "payload": {entity_name: {"entity": {"id": resource_id}}},
@@ -166,6 +179,44 @@ def test_opted_out_customer_creates_stopped_case():
             "RECOVERY_CASE_STATUS_CHANGED",
         ]
         assert audits[-1].input_snapshot["reason"] == "CUSTOMER_OPTED_OUT"
+
+
+def test_conflicting_webhook_account_cannot_use_a_mapped_local_resource():
+    factory = session_factory()
+    now = datetime.now(timezone.utc)
+    with factory() as session:
+        owner = merchant(session)
+        session.add(
+            Order(
+                merchant_id=owner.id,
+                razorpay_order_id="order_case123",
+                amount=5000,
+                amount_paid=1000,
+                amount_due=4000,
+                currency="INR",
+                status="attempted",
+                attempts=1,
+            )
+        )
+        session.flush()
+
+        with pytest.raises(RecoveryCaseOwnershipError):
+            RecoveryCaseEngine(
+                session, recovery_window_days=14
+            ).handle_webhook(
+                envelope(
+                    "payment.failed", now, account_id="acc_untrusted"
+                ),
+                ReconciliationResult(
+                    resource_id="pay_case123",
+                    recovery_case_id=None,
+                    snapshot=failed_snapshot(),
+                ),
+                event_id="event_wrong_account",
+                now=now,
+            )
+
+        assert session.scalar(select(func.count()).select_from(RecoveryCase)) == 0
 
 
 def test_unpaid_order_scan_is_idempotent_and_skips_recent_or_paid_orders():
@@ -321,6 +372,46 @@ def test_payment_link_outcomes_update_linked_case_without_reopening_terminal_cas
         session.commit()
 
         assert paid_case.status is RecoveryCaseStatus.RECOVERED
+
+
+def test_partially_paid_payment_link_creates_case_for_remaining_amount():
+    factory = session_factory()
+    now = datetime.now(timezone.utc)
+    with factory() as session:
+        owner = merchant(session)
+        result = ReconciliationResult(
+            resource_id="plink_case123",
+            recovery_case_id=None,
+            snapshot={
+                "payment_link": {
+                    "id": "plink_case123",
+                    "status": "partially_paid",
+                    "amount": 9000,
+                    "amount_paid": 3500,
+                    "currency": "INR",
+                }
+            },
+        )
+
+        recovery_case = RecoveryCaseEngine(
+            session, recovery_window_days=14
+        ).handle_webhook(
+            envelope("payment_link.partially_paid", now),
+            result,
+            event_id="event_link_partial",
+            now=now,
+        )
+        session.commit()
+
+        payment_link = session.scalar(
+            select(PaymentLink).where(
+                PaymentLink.razorpay_payment_link_id == "plink_case123"
+            )
+        )
+        assert recovery_case.source_type is SourceType.PAYMENT_LINK
+        assert recovery_case.amount_at_risk == 5500
+        assert recovery_case.status is RecoveryCaseStatus.AT_RISK
+        assert payment_link.recovery_case_id == recovery_case.id
 
 
 def test_active_case_api_expires_overdue_cases_and_returns_only_active():

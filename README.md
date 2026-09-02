@@ -2,7 +2,7 @@
 
 Revenue Recovery Control Plane is an AI-assisted decision and measurement layer for Razorpay merchants. It is intended to unify revenue-at-risk, recommend economically sensible recovery interventions, gate every financial action through deterministic policy, execute only supported Razorpay Test Mode actions, and measure recovered revenue separately from incremental recovered revenue.
 
-This repository is implemented phase by phase from [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). Phase 0 created the runnable foundation, Phase 1 added the core domain schema and Recovery Case lifecycle, Phase 2 added the bounded Razorpay Test Mode adapter, and Phase 3 adds verified, idempotent webhook ingestion.
+This repository is implemented phase by phase from [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). Phase 0 created the runnable foundation, Phase 1 added the core domain schema and Recovery Case lifecycle, Phase 2 added the bounded Razorpay Test Mode adapter, Phase 3 added verified webhook ingestion, and Phase 4 turns eligible monetary signals into persistent Recovery Cases.
 
 ## Implemented Scope
 
@@ -48,9 +48,21 @@ Implemented in Phase 3:
 - Safe retry of failed reconciliation without repeating processed events
 - Duplicate-delivery and out-of-order event tests
 
+Implemented in Phase 4:
+
+- Idempotent Recovery Case creation from failed payments
+- Configurable unpaid-order detection and case creation
+- Payment Link case correlation and remaining-balance calculation
+- Merchant account ownership checks for webhook-created resources
+- Configurable recovery windows with persisted expiration
+- Stop conditions for inactive merchants, opted-out customers, paid resources,
+  and cancelled links
+- Append-only case creation and status-change audit events
+- Active-case query for dashboard consumers
+
 Not implemented yet:
 
-- Recovery Case creation from Razorpay events
+- Revenue-at-risk aggregation and ranking
 - AI/ML decisions, policy engine, recovery execution, or monetary metrics
 
 ## Run Locally
@@ -125,6 +137,11 @@ With the API running, Recovery Cases can be checked at:
 - `GET /api/cases/{case_id}`
 - `POST /api/cases`
 - `PATCH /api/cases/{case_id}/status`
+- `GET /api/cases?active_only=true`
+- `POST /api/cases/scan-unpaid-orders`
+
+See [docs/recovery-cases.md](docs/recovery-cases.md) for Phase 4 eligibility,
+amount-at-risk, recovery-window, expiration, and stop-condition behavior.
 
 ## Razorpay Test Mode Adapter
 

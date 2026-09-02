@@ -155,6 +155,52 @@ Known limitations:
 
 ## Phase 4 - Recovery Case Engine
 
-Status: Not started
+Status: PASS
 
-Phase 4 must not begin until Phase 3 acceptance criteria are satisfied.
+Implemented:
+
+- Idempotent failed-payment Recovery Case creation from reconciled provider state.
+- Deterministic scans for old `created` or `attempted` orders with a positive
+  amount due.
+- Payment Link correlation and remaining-balance case creation.
+- Merchant-to-Razorpay account mapping with cross-account ownership rejection.
+- Source-specific amount-at-risk calculation.
+- Configurable recovery windows and persisted expiration.
+- Stop/recovery conditions for merchant state, consent, paid resources, and
+  cancelled links.
+- Append-only creation and lifecycle audit events.
+- Dashboard-ready active-case filtering through `GET /api/cases?active_only=true`.
+
+Acceptance criteria:
+
+- A current failed payment creates one persistent Recovery Case.
+- An eligible unpaid order or unpaid Payment Link creates one persistent case.
+- Duplicate events and scans do not create duplicate cases.
+- Active cases can be queried by all merchants or one merchant.
+- Expired and stopped cases are persisted and excluded from active results.
+
+Validated on 2026-09-02:
+
+- `python -m pytest -q` (`52 passed`, one pre-existing Starlette deprecation
+  warning).
+- Focused Recovery Case engine and webhook integration suite (`24 passed`).
+- `python -m compileall -q apps/api/app apps/api/tests`.
+- `python -m alembic heads` returned `0004_recovery_case_engine (head)`.
+- `python -m alembic upgrade head --sql` succeeded.
+- Migration `0004_recovery_case_engine` applied to PostgreSQL.
+- PostgreSQL confirmed the account mapping, Payment Link paid amount, unique
+  account constraint, and nonnegative paid-amount constraint.
+- `docker compose config --quiet`.
+- `docker compose build api`.
+- Disposable API container reported version `0.5.0-phase4`.
+- `pnpm --filter @recovery-control-plane/web build`.
+- `git diff --check`.
+
+Known limitations:
+
+- The unpaid-order scan is an explicit idempotent API operation; durable scheduling
+  belongs to later operational hardening.
+- Real Razorpay Test Mode events were not delivered because credentials and a
+  public webhook callback are not stored in the repository.
+- Revenue-at-risk aggregation, expected recoverable value, and ranking begin in
+  Phase 5 and were intentionally not implemented here.

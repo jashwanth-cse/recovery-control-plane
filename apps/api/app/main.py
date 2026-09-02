@@ -27,7 +27,7 @@ def create_app() -> FastAPI:
     settings = get_settings()
     app = FastAPI(
         title=settings.app_name,
-        version="0.4.0-phase3",
+        version="0.5.0-phase4",
         summary="Revenue recovery API with verified Razorpay webhook ingestion.",
         lifespan=lifespan,
     )

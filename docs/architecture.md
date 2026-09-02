@@ -55,6 +55,8 @@ The API exposes:
 - `GET /api/cases` for Recovery Case listing
 - `GET /api/cases/{case_id}` for Recovery Case lookup
 - `POST /api/cases` for direct Phase 1 Recovery Case creation
+- `POST /api/cases/scan-unpaid-orders` for deterministic unpaid-order detection
+- `GET /api/cases?active_only=true` for dashboard-ready active cases
 - `PATCH /api/cases/{case_id}/status` for validated lifecycle transitions
 - `POST /webhooks/razorpay` for verified Razorpay event ingestion
 
@@ -131,8 +133,30 @@ and the same event ID may safely retry provider reads. Out-of-order events updat
 local resources from current Razorpay API state rather than trusting the older
 webhook snapshot.
 
-Phase 3 correlates only existing Recovery Cases. Creating cases from eligible
-events and applying case lifecycle transitions remain Phase 4 responsibilities.
+## Phase 4 Recovery Case Engine
+
+```text
+Reconciled Razorpay state / unpaid-order scan
+      ↓
+Merchant ownership + eligibility checks
+      ↓
+Idempotent source-backed Recovery Case
+      ↓
+Amount at risk + bounded recovery window
+      ↓
+Stop/recovery/expiration transitions + audit event
+```
+
+Failed payments use the lesser of the failed payment amount and positive order
+amount due. Partially paid or expired Payment Links use their remaining balance,
+and eligible old orders use `amount_due`. The unique merchant/source constraint
+is the durable case idempotency boundary.
+
+Recovery windows default to 14 days. Cases stop for inactive merchants, opted-out
+customers, or cancelled links; paid resources recover linked cases; overdue cases
+expire. Terminal cases never reopen when older events arrive. Account IDs and
+known local resource ownership must agree before a webhook can create resources or
+cases for a merchant.
 
 ## Financial Safety Model
 
