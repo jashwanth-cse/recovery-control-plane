@@ -414,6 +414,9 @@ class RecoveryAction(Base):
 
 class ActionOutcome(Base):
     __tablename__ = "action_outcomes"
+    __table_args__ = (
+        UniqueConstraint("action_id", name="uq_action_outcomes_action_id"),
+    )
 
     id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid4)
     action_id: Mapped[UUID] = mapped_column(

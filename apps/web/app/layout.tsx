@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Revenue Recovery Control Plane",
-  description: "Foundation UI for Razorpay revenue recovery orchestration"
+  description: "Revenue-at-risk dashboard for Razorpay recovery operations"
 };
 
 export default function RootLayout({

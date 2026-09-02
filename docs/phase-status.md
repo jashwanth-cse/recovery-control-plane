@@ -204,3 +204,90 @@ Known limitations:
   public webhook callback are not stored in the repository.
 - Revenue-at-risk aggregation, expected recoverable value, and ranking begin in
   Phase 5 and were intentionally not implemented here.
+
+## Phase 5 - Revenue-at-Risk Aggregator
+
+Status: PASS
+
+Implemented:
+
+- Currency-separated Revenue at Risk, Expected Recoverable, and active-case
+  aggregation.
+- Latest persisted decision probability selection with estimate-coverage counts.
+- Deterministic expected-value and recovery-window urgency ranking.
+- Dashboard summary API with merchant filtering and bounded top-result limits.
+- Initial operational dashboard backed entirely by the summary API.
+- Loading, disconnected, empty, multi-currency, desktop, and mobile UI states.
+
+Acceptance criteria:
+
+- Dashboard displays computed Revenue at Risk, Expected Recoverable, Active Cases,
+  and Top Opportunities.
+- No frontend metric is hard-coded.
+- Currency totals are never combined without conversion.
+- Cases without a probability remain visibly unestimated.
+
+Validated on 2026-09-02:
+
+- `python -m pytest -q` (`54 passed`, one pre-existing Starlette deprecation
+  warning).
+- Focused dashboard, Recovery Case, and health suite (`12 passed`).
+- `python -m compileall -q apps/api/app apps/api/tests`.
+- `pnpm --filter @recovery-control-plane/web build`.
+- `docker compose up --build --detach` on alternate ports `18000` and `13000`.
+- PostgreSQL-backed API reported version `0.6.0-phase5` and returned two active
+  seeded opportunities with computed INR totals.
+- Headless Edge render checks at 1440x1000 and 390x844.
+- `git diff --check`.
+
+Known limitations:
+
+- Expected Recoverable is zero until a later phase persists valid decision
+  probabilities; estimate coverage is returned and displayed to avoid false
+  precision.
+- Phase 5 ranks opportunities but does not select or execute actions.
+- Rule baseline and control/treatment comparison begin in Phase 6.
+
+## Phase 6 - Rule-Based Recovery Baseline
+
+Status: PASS
+
+Implemented:
+
+- Versioned deterministic rules for unpaid orders, existing Payment Links,
+  transient payment failures, and unknown/non-transient failures.
+- Exact hash-ranked control/treatment allocation for eligible active cases.
+- No-intervention control cases with no generated decision or action.
+- Treatment Recovery Decisions and pending Recovery Actions with policy explicitly
+  marked `NOT_RUN`.
+- Idempotent action outcome records with captured-payment evidence for recovery.
+- Intent-to-treat baseline reports with group counts, recovery rates, rate lift,
+  outcome coverage, and action distribution.
+- Unique action-outcome database boundary.
+
+Acceptance criteria:
+
+- A batch can compare no intervention with rule-based recovery.
+- Control cases receive no intervention record.
+- Treatment cases receive one deterministic recommendation and pending action.
+- Observed action outcomes are persistent and idempotent.
+- Reports calculate both group recovery rates from stored state.
+- No Razorpay action is executed by the baseline.
+
+Validated on 2026-09-02:
+
+- `python -m pytest -q` (`58 passed`, one pre-existing Starlette deprecation
+  warning).
+- Focused rule baseline and dashboard suite (`6 passed`).
+- `python -m compileall -q apps/api/app apps/api/tests`.
+- `python -m alembic heads` returned `0005_rule_baseline (head)`.
+- `python -m alembic upgrade head --sql` succeeded.
+- `docker compose config --quiet`.
+- Migration `0005_rule_baseline` applied to PostgreSQL.
+- PostgreSQL confirmed `uq_action_outcomes_action_id`.
+- Containerized API reported version `0.7.0-phase6`.
+- A PostgreSQL-backed 50/50 batch assigned one control and one treatment case.
+- Database inspection confirmed zero control actions and one pending treatment
+  action with policy evaluation `NOT_RUN`.
+- The live comparison report returned both group rates and computed rate lift.
+- `git diff --check`.

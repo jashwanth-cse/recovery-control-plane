@@ -2,7 +2,7 @@
 
 Revenue Recovery Control Plane is an AI-assisted decision and measurement layer for Razorpay merchants. It is intended to unify revenue-at-risk, recommend economically sensible recovery interventions, gate every financial action through deterministic policy, execute only supported Razorpay Test Mode actions, and measure recovered revenue separately from incremental recovered revenue.
 
-This repository is implemented phase by phase from [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). Phase 0 created the runnable foundation, Phase 1 added the core domain schema and Recovery Case lifecycle, Phase 2 added the bounded Razorpay Test Mode adapter, Phase 3 added verified webhook ingestion, and Phase 4 turns eligible monetary signals into persistent Recovery Cases.
+This repository is implemented phase by phase from [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). Phase 0 created the runnable foundation, Phase 1 added the core domain schema and Recovery Case lifecycle, Phase 2 added the bounded Razorpay Test Mode adapter, Phase 3 added verified webhook ingestion, Phase 4 turns eligible monetary signals into persistent Recovery Cases, Phase 5 presents their computed monetary opportunity view, and Phase 6 adds a rule-based control/treatment benchmark.
 
 ## Implemented Scope
 
@@ -60,10 +60,27 @@ Implemented in Phase 4:
 - Append-only case creation and status-change audit events
 - Active-case query for dashboard consumers
 
+Implemented in Phase 5:
+
+- Currency-safe Revenue at Risk and Expected Recoverable aggregation
+- Latest-decision probability lookup with explicit unestimated-case coverage
+- Expected-value and time-urgency opportunity ranking
+- `GET /api/dashboard/summary` with merchant and result-limit filters
+- Live dashboard UI with loading, error, empty, multi-currency, and responsive states
+
+Implemented in Phase 6:
+
+- Versioned deterministic recovery rules
+- Exact control/treatment assignment for active, unassigned cases
+- No-intervention control with no generated action
+- Rule decisions and pending treatment actions without execution side effects
+- Idempotent observed outcome recording backed by captured payment evidence
+- Baseline reports comparing control and treatment recovery rates
+
 Not implemented yet:
 
-- Revenue-at-risk aggregation and ranking
-- AI/ML decisions, policy engine, recovery execution, or monetary metrics
+- AI/ML decisions, policy engine, and recovery execution
+- Gross and incremental recovered-revenue metrics
 
 ## Run Locally
 
@@ -142,6 +159,13 @@ With the API running, Recovery Cases can be checked at:
 
 See [docs/recovery-cases.md](docs/recovery-cases.md) for Phase 4 eligibility,
 amount-at-risk, recovery-window, expiration, and stop-condition behavior.
+
+The Phase 5 dashboard reads `GET /api/dashboard/summary`. See
+[docs/revenue-at-risk.md](docs/revenue-at-risk.md) for calculation and ranking
+semantics.
+
+See [docs/rule-baseline.md](docs/rule-baseline.md) for Phase 6 rules, batch
+assignment, outcome evidence, and comparison-report semantics.
 
 ## Razorpay Test Mode Adapter
 

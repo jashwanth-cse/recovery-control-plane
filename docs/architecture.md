@@ -57,6 +57,9 @@ The API exposes:
 - `POST /api/cases` for direct Phase 1 Recovery Case creation
 - `POST /api/cases/scan-unpaid-orders` for deterministic unpaid-order detection
 - `GET /api/cases?active_only=true` for dashboard-ready active cases
+- `GET /api/dashboard/summary` for computed monetary metrics and opportunities
+- `POST /api/baselines/batches` for control/treatment rule benchmark assignment
+- `GET /api/baselines/{experiment_id}/report` for baseline comparison
 - `PATCH /api/cases/{case_id}/status` for validated lifecycle transitions
 - `POST /webhooks/razorpay` for verified Razorpay event ingestion
 
@@ -157,6 +160,28 @@ customers, or cancelled links; paid resources recover linked cases; overdue case
 expire. Terminal cases never reopen when older events arrive. Account IDs and
 known local resource ownership must agree before a webhook can create resources or
 cases for a merchant.
+
+## Phase 5 Revenue-At-Risk Aggregation
+
+The dashboard aggregator reads active Recovery Cases and each case's latest
+persisted Recovery Decision. It groups monetary totals by currency, calculates an
+expected recoverable amount only when a valid probability is present, and ranks
+opportunities using expected amount and remaining-window urgency. Unscored cases
+use amount and urgency for queue placement but remain visibly unestimated.
+
+Aggregation is computed on request from database state; the frontend contains no
+metric constants. Phase 5 does not create decisions or claim recovered revenue.
+
+## Phase 6 Rule Baseline
+
+The deterministic baseline assigns eligible cases to an exact no-intervention
+control share and a rule-treatment share. Control creates no action. Treatment
+stores a versioned decision and pending action while leaving policy evaluation as
+`NOT_RUN`, preserving the policy-before-execution boundary.
+
+Observed recovered outcomes require an existing captured payment owned by the
+case merchant. Reports compare cumulative recovery rates across all assigned cases
+and expose action distribution without claiming causal incrementality.
 
 ## Financial Safety Model
 
