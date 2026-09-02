@@ -291,3 +291,46 @@ Validated on 2026-09-02:
   action with policy evaluation `NOT_RUN`.
 - The live comparison report returned both group rates and computed rate lift.
 - `git diff --check`.
+
+## Phase 7 - Synthetic Data Simulator
+
+Status: PASS
+
+Implemented:
+
+- Seeded synthetic customer profiles with tenure, history, engagement, and
+  available payment methods.
+- Synthetic payments with bounded long-tail amounts and varied methods.
+- Weighted failure profiles, attempt counts, and case ages.
+- Correlated potential outcomes for no intervention, recovery link, update prompt,
+  and delay.
+- Separate model-visible and evaluation-only CSV files joined only by case ID.
+- Versioned checksum manifest and deterministic UUIDv5 identifiers.
+- One-command CLI supporting up to one million requested cases.
+
+Acceptance criteria:
+
+- One command generates thousands of synthetic cases.
+- Equal version, seed, and case count produce byte-identical datasets.
+- Different seeds produce different data.
+- Hidden counterfactual fields never appear in the model-visible schema.
+- Customer, payment, failure, history, age, and outcome values vary.
+
+Validated on 2026-09-02:
+
+- Focused simulator property suite (`4 passed`).
+- `python -m simulator --cases 5000 --seed 42 --output-dir
+  artifacts/simulator-phase7` generated 5,000 cases and 1,667 customers.
+- Generated feature and hidden files were approximately 865 KB and 405 KB.
+- Manifest SHA-256 values matched both generated files.
+- Feature and ground-truth headers shared only `case_id`.
+- Full `python -m pytest -q` suite passed (`62 passed`, one pre-existing
+  Starlette deprecation warning).
+- `python -m compileall -q apps/api/app apps/api/tests simulator tests`.
+- `python -m alembic heads` returned `0005_rule_baseline (head)`.
+- `docker compose config --quiet`.
+- API container image built with the simulator package.
+- A disposable API container generated the same 5,000-case SHA-256 hashes as the
+  host run.
+- Packaged API reported version `0.8.0-phase7`.
+- `git diff --check`.

@@ -183,6 +183,18 @@ Observed recovered outcomes require an existing captured payment owned by the
 case merchant. Reports compare cumulative recovery rates across all assigned cases
 and expose action distribution without claiming causal incrementality.
 
+## Phase 7 Synthetic Simulator
+
+The standalone `simulator` package generates versioned CSV datasets without
+database or provider dependencies. A local `random.Random` instance, UUIDv5 IDs,
+canonical CSV formatting, and a checksum manifest make equal configurations
+byte-reproducible.
+
+`features.csv` contains observed customer, payment, failure, age, and history
+fields. `ground_truth.csv` contains potential outcomes and latent probabilities;
+`case_id` is their only shared field. This physical boundary is the first defense
+against model leakage in Phase 8.
+
 ## Financial Safety Model
 
 No LLM or model may execute arbitrary financial actions. The required sequence is:
