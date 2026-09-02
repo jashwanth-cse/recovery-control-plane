@@ -102,6 +102,59 @@ Known limitation:
 
 ## Phase 3 - Webhook Ingestion
 
+Status: PASS
+
+Implemented:
+
+- `POST /webhooks/razorpay` ingestion endpoint.
+- HMAC-SHA256 verification over the untouched request body.
+- Current and previous webhook secrets for rotation-safe retries.
+- Durable `webhook_events` persistence with a unique provider/event ID boundary.
+- Explicit processing states and retry attempt tracking.
+- Routing for payment failed, authorized, and captured events.
+- Routing for Payment Link paid, partially paid, cancelled, and expired events.
+- Correlation to existing payment-, order-, and Payment Link-backed Recovery Cases.
+- Current-state reconciliation through typed Razorpay API reads.
+- Minimized reconciliation snapshots without customer contact data.
+- Structured duplicate, ignored, reconciled, and failed event logs.
+
+Acceptance criteria:
+
+- Repeated delivery of a processed event does not repeat reconciliation or invoke
+  a business action.
+- Failed reconciliation can retry under the same event ID.
+- Critical payment, order, and Payment Link states reconcile through the adapter.
+- Out-of-order delivery cannot regress local state from captured/paid to failed.
+- Invalid signatures are rejected before parsing or persistence.
+
+Validated on 2026-09-02:
+
+- Official Razorpay webhook validation, idempotency, ordering, payment-event, and
+  Payment Link event references reviewed.
+- `python -m pytest` (`43 passed`, one pre-existing Starlette deprecation warning).
+- Focused signature, endpoint, duplicate, retry, all-event routing, correlation,
+  and out-of-order tests.
+- `python -m compileall -q apps/api/app apps/api/tests`.
+- `python -m alembic heads` returned `0003_webhook_events (head)`.
+- `python -m alembic upgrade head --sql` succeeded.
+- Migration `0003_webhook_events` applied to PostgreSQL.
+- PostgreSQL confirmed the table and `uq_webhook_events_provider_event_id`.
+- `docker compose config --quiet`.
+- `docker compose build api`.
+- Disposable API container reported version `0.4.0-phase3`.
+- `pnpm --filter @recovery-control-plane/web build`.
+- `git diff --check`.
+
+Known limitations:
+
+- No real Razorpay Test Mode webhook was delivered because merchant credentials
+  and a public callback URL are not available in the repository environment.
+- Reconciliation is synchronous in Phase 3. Durable background jobs and stale
+  processing-lease recovery remain hardening work for later phases.
+- Phase 3 correlates existing cases only; case creation begins in Phase 4.
+
+## Phase 4 - Recovery Case Engine
+
 Status: Not started
 
-Phase 3 must not begin until Phase 2 acceptance criteria are satisfied.
+Phase 4 must not begin until Phase 3 acceptance criteria are satisfied.

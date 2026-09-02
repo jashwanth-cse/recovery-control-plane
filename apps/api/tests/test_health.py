@@ -13,7 +13,7 @@ def test_health_endpoint_returns_service_status():
         "service": "Revenue Recovery Control Plane",
         "environment": "development",
         "status": "ok",
-        "version": "0.3.0-phase2",
+        "version": "0.4.0-phase3",
     }
 
 

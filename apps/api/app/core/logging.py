@@ -22,6 +22,8 @@ class JsonFormatter(logging.Formatter):
             "razorpay_resource_id",
             "model_version",
             "policy_version",
+            "webhook_event_id",
+            "webhook_event_type",
             "app_name",
             "environment",
         ):

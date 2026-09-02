@@ -56,6 +56,7 @@ The API exposes:
 - `GET /api/cases/{case_id}` for Recovery Case lookup
 - `POST /api/cases` for direct Phase 1 Recovery Case creation
 - `PATCH /api/cases/{case_id}/status` for validated lifecycle transitions
+- `POST /webhooks/razorpay` for verified Razorpay event ingestion
 
 ## Phase 1 Domain Model
 
@@ -100,6 +101,38 @@ cross the integration boundary.
 The adapter factory rejects missing credentials and live-mode keys. No adapter
 operation is automatically invoked at startup, and Phase 2 adds no unrestricted
 execution API.
+
+## Phase 3 Webhook Ingestion
+
+```text
+Raw webhook request
+      ↓
+HMAC-SHA256 signature verification
+      ↓
+Validated event envelope
+      ↓
+Unique provider/event ID persistence
+      ↓
+Supported event router
+      ↓
+Razorpay API reconciliation
+      ↓
+Existing resource sync + case correlation
+```
+
+`webhook_events` stores the verified event envelope, processing status, attempt
+count, optional Recovery Case correlation, and a minimized reconciliation
+snapshot. The unique `(provider, event_id)` constraint is the concurrency-safe
+deduplication boundary.
+
+Processed, ignored, or currently processing duplicates return success without
+running reconciliation again. Failed reconciliation returns a non-2xx response
+and the same event ID may safely retry provider reads. Out-of-order events update
+local resources from current Razorpay API state rather than trusting the older
+webhook snapshot.
+
+Phase 3 correlates only existing Recovery Cases. Creating cases from eligible
+events and applying case lifecycle transitions remain Phase 4 responsibilities.
 
 ## Financial Safety Model
 

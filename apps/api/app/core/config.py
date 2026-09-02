@@ -18,6 +18,13 @@ class Settings(BaseSettings):
     razorpay_api_base_url: str = "https://api.razorpay.com/v1"
     razorpay_timeout_seconds: float = Field(default=10.0, gt=0, le=60)
     razorpay_test_mode_only: bool = True
+    razorpay_webhook_secret: SecretStr | None = None
+    razorpay_webhook_previous_secret: SecretStr | None = None
+    razorpay_webhook_max_body_bytes: int = Field(
+        default=1_000_000, gt=0, le=5_000_000
+    )
+    recovery_window_days: int = Field(default=14, gt=0, le=180)
+    abandoned_order_age_minutes: int = Field(default=30, gt=0, le=10_080)
 
     model_config = SettingsConfigDict(
         env_file=".env",

@@ -1,4 +1,6 @@
-from datetime import datetime
+from __future__ import annotations
+
+from datetime import datetime, timezone
 from uuid import UUID
 
 from sqlalchemy import select
@@ -6,6 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.db.models import RecoveryCase
 from app.domain.enums import ExperimentGroup, RecoveryCaseStatus, SourceType
+from app.domain.recovery_case import TERMINAL_STATUSES
 
 
 class RecoveryCaseRepository:
@@ -52,6 +55,25 @@ class RecoveryCaseRepository:
 
     def list(self, *, merchant_id: UUID | None = None) -> list[RecoveryCase]:
         statement = select(RecoveryCase).order_by(RecoveryCase.created_at.desc())
+        if merchant_id is not None:
+            statement = statement.where(RecoveryCase.merchant_id == merchant_id)
+        return list(self.session.scalars(statement))
+
+    def list_active(
+        self,
+        *,
+        merchant_id: UUID | None = None,
+        now: datetime | None = None,
+    ) -> list[RecoveryCase]:
+        observed_at = now or datetime.now(timezone.utc)
+        statement = (
+            select(RecoveryCase)
+            .where(
+                RecoveryCase.status.not_in(tuple(TERMINAL_STATUSES)),
+                RecoveryCase.recovery_window_end > observed_at,
+            )
+            .order_by(RecoveryCase.created_at.desc())
+        )
         if merchant_id is not None:
             statement = statement.where(RecoveryCase.merchant_id == merchant_id)
         return list(self.session.scalars(statement))

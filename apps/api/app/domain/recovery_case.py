@@ -15,41 +15,86 @@ TERMINAL_STATUSES = frozenset(
 )
 
 ALLOWED_TRANSITIONS: dict[RecoveryCaseStatus, frozenset[RecoveryCaseStatus]] = {
-    RecoveryCaseStatus.AT_RISK: frozenset({RecoveryCaseStatus.ELIGIBILITY_CHECK}),
+    RecoveryCaseStatus.AT_RISK: frozenset(
+        {
+            RecoveryCaseStatus.ELIGIBILITY_CHECK,
+            RecoveryCaseStatus.RECOVERED,
+            RecoveryCaseStatus.STOPPED,
+            RecoveryCaseStatus.EXPIRED,
+        }
+    ),
     RecoveryCaseStatus.ELIGIBILITY_CHECK: frozenset(
-        {RecoveryCaseStatus.ASSESSING, RecoveryCaseStatus.STOPPED}
+        {
+            RecoveryCaseStatus.ASSESSING,
+            RecoveryCaseStatus.RECOVERED,
+            RecoveryCaseStatus.STOPPED,
+            RecoveryCaseStatus.EXPIRED,
+        }
     ),
     RecoveryCaseStatus.ASSESSING: frozenset(
-        {RecoveryCaseStatus.DECISION_READY, RecoveryCaseStatus.STOPPED}
+        {
+            RecoveryCaseStatus.DECISION_READY,
+            RecoveryCaseStatus.RECOVERED,
+            RecoveryCaseStatus.STOPPED,
+            RecoveryCaseStatus.EXPIRED,
+        }
     ),
     RecoveryCaseStatus.DECISION_READY: frozenset(
-        {RecoveryCaseStatus.POLICY_CHECK, RecoveryCaseStatus.STOPPED}
+        {
+            RecoveryCaseStatus.POLICY_CHECK,
+            RecoveryCaseStatus.RECOVERED,
+            RecoveryCaseStatus.STOPPED,
+            RecoveryCaseStatus.EXPIRED,
+        }
     ),
     RecoveryCaseStatus.POLICY_CHECK: frozenset(
         {
             RecoveryCaseStatus.ACTION_PENDING,
+            RecoveryCaseStatus.RECOVERED,
             RecoveryCaseStatus.STOPPED,
+            RecoveryCaseStatus.EXPIRED,
             RecoveryCaseStatus.ESCALATED,
         }
     ),
     RecoveryCaseStatus.ACTION_PENDING: frozenset(
-        {RecoveryCaseStatus.EXECUTING, RecoveryCaseStatus.STOPPED}
+        {
+            RecoveryCaseStatus.EXECUTING,
+            RecoveryCaseStatus.RECOVERED,
+            RecoveryCaseStatus.STOPPED,
+            RecoveryCaseStatus.EXPIRED,
+        }
     ),
     RecoveryCaseStatus.EXECUTING: frozenset(
         {
             RecoveryCaseStatus.RECOVERED,
             RecoveryCaseStatus.ACTION_FAILED,
             RecoveryCaseStatus.STOPPED,
+            RecoveryCaseStatus.EXPIRED,
         }
     ),
     RecoveryCaseStatus.ACTION_FAILED: frozenset(
-        {RecoveryCaseStatus.REASSESS, RecoveryCaseStatus.STOPPED}
+        {
+            RecoveryCaseStatus.REASSESS,
+            RecoveryCaseStatus.RECOVERED,
+            RecoveryCaseStatus.STOPPED,
+            RecoveryCaseStatus.EXPIRED,
+        }
     ),
     RecoveryCaseStatus.REASSESS: frozenset(
-        {RecoveryCaseStatus.NEXT_ACTION, RecoveryCaseStatus.STOPPED}
+        {
+            RecoveryCaseStatus.NEXT_ACTION,
+            RecoveryCaseStatus.RECOVERED,
+            RecoveryCaseStatus.STOPPED,
+            RecoveryCaseStatus.EXPIRED,
+        }
     ),
     RecoveryCaseStatus.NEXT_ACTION: frozenset(
-        {RecoveryCaseStatus.POLICY_CHECK, RecoveryCaseStatus.STOPPED}
+        {
+            RecoveryCaseStatus.POLICY_CHECK,
+            RecoveryCaseStatus.RECOVERED,
+            RecoveryCaseStatus.STOPPED,
+            RecoveryCaseStatus.EXPIRED,
+        }
     ),
     RecoveryCaseStatus.RECOVERED: frozenset(),
     RecoveryCaseStatus.STOPPED: frozenset(),

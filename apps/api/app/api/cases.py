@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -6,10 +6,12 @@ from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.core.config import Settings, get_settings
 from app.db.models import RecoveryCase
 from app.db.session import get_session
 from app.domain.enums import ExperimentGroup, RecoveryCaseStatus, SourceType
 from app.domain.recovery_case import RecoveryCaseValidationError
+from app.recovery.engine import RecoveryCaseEngine
 from app.repositories.recovery_cases import RecoveryCaseRepository
 
 router = APIRouter(prefix="/api/cases", tags=["recovery cases"])
@@ -91,9 +93,39 @@ def create_recovery_case(
 @router.get("", response_model=list[RecoveryCaseResponse])
 def list_recovery_cases(
     merchant_id: UUID | None = None,
+    active_only: bool = False,
     repo: RecoveryCaseRepository = Depends(repository),
+    settings: Settings = Depends(get_settings),
 ) -> list[RecoveryCase]:
+    if active_only:
+        engine = RecoveryCaseEngine(
+            repo.session, recovery_window_days=settings.recovery_window_days
+        )
+        engine.expire_due_cases(merchant_id=merchant_id)
+        repo.session.commit()
+        return repo.list_active(merchant_id=merchant_id)
     return repo.list(merchant_id=merchant_id)
+
+
+@router.post(
+    "/scan-unpaid-orders",
+    response_model=list[RecoveryCaseResponse],
+)
+def scan_unpaid_orders(
+    merchant_id: UUID | None = None,
+    repo: RecoveryCaseRepository = Depends(repository),
+    settings: Settings = Depends(get_settings),
+) -> list[RecoveryCase]:
+    engine = RecoveryCaseEngine(
+        repo.session, recovery_window_days=settings.recovery_window_days
+    )
+    engine.expire_due_cases(merchant_id=merchant_id)
+    cases = engine.scan_unpaid_orders(
+        minimum_age=timedelta(minutes=settings.abandoned_order_age_minutes),
+        merchant_id=merchant_id,
+    )
+    repo.session.commit()
+    return cases
 
 
 @router.get("/{case_id}", response_model=RecoveryCaseResponse)

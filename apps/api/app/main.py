@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.cases import router as cases_router
 from app.api.health import router as health_router
+from app.api.webhooks import router as webhooks_router
 from app.core.config import get_settings
 from app.core.logging import configure_logging, get_logger
 
@@ -26,8 +27,8 @@ def create_app() -> FastAPI:
     settings = get_settings()
     app = FastAPI(
         title=settings.app_name,
-        version="0.3.0-phase2",
-        summary="Revenue recovery domain API with a bounded Razorpay adapter.",
+        version="0.4.0-phase3",
+        summary="Revenue recovery API with verified Razorpay webhook ingestion.",
         lifespan=lifespan,
     )
 
@@ -41,6 +42,7 @@ def create_app() -> FastAPI:
 
     app.include_router(health_router)
     app.include_router(cases_router)
+    app.include_router(webhooks_router)
     return app
 
 

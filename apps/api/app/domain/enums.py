@@ -66,3 +66,11 @@ class AuditActorType(str, Enum):
     MODEL = "MODEL"
     HUMAN = "HUMAN"
     RAZORPAY = "RAZORPAY"
+
+
+class WebhookEventStatus(str, Enum):
+    RECEIVED = "RECEIVED"
+    PROCESSING = "PROCESSING"
+    PROCESSED = "PROCESSED"
+    IGNORED = "IGNORED"
+    FAILED = "FAILED"

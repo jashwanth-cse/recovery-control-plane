@@ -2,7 +2,7 @@
 
 Revenue Recovery Control Plane is an AI-assisted decision and measurement layer for Razorpay merchants. It is intended to unify revenue-at-risk, recommend economically sensible recovery interventions, gate every financial action through deterministic policy, execute only supported Razorpay Test Mode actions, and measure recovered revenue separately from incremental recovered revenue.
 
-This repository is implemented phase by phase from [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). Phase 0 created the runnable foundation, Phase 1 added the core domain schema and Recovery Case lifecycle, and Phase 2 adds the bounded Razorpay Test Mode adapter.
+This repository is implemented phase by phase from [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). Phase 0 created the runnable foundation, Phase 1 added the core domain schema and Recovery Case lifecycle, Phase 2 added the bounded Razorpay Test Mode adapter, and Phase 3 adds verified, idempotent webhook ingestion.
 
 ## Implemented Scope
 
@@ -37,9 +37,20 @@ Implemented in Phase 2:
 - Normalized configuration, transport, provider, and response errors
 - Mock-transport contract tests for every supported operation
 
+Implemented in Phase 3:
+
+- Raw-body HMAC-SHA256 verification for Razorpay webhook signatures
+- Current and previous webhook-secret support for safe secret rotation
+- Durable event persistence and provider/event ID deduplication
+- Routing for supported payment and Payment Link event types
+- Correlation to existing Recovery Cases
+- Current-state reconciliation through Razorpay payment, order, and Payment Link reads
+- Safe retry of failed reconciliation without repeating processed events
+- Duplicate-delivery and out-of-order event tests
+
 Not implemented yet:
 
-- Webhook ingestion or case creation from Razorpay events
+- Recovery Case creation from Razorpay events
 - AI/ML decisions, policy engine, recovery execution, or monetary metrics
 
 ## Run Locally
@@ -123,6 +134,19 @@ still start when credentials are absent; adapter construction then fails closed.
 
 See [docs/razorpay-adapter.md](docs/razorpay-adapter.md) for the verified endpoint
 contract, configuration, safety boundary, and test strategy.
+
+## Razorpay Webhooks
+
+Configure `RAZORPAY_WEBHOOK_SECRET` and send Razorpay Test Mode webhooks to:
+
+```text
+POST /webhooks/razorpay
+```
+
+The endpoint requires `X-Razorpay-Signature` and `x-razorpay-event-id`. It
+verifies the untouched request body before parsing or persisting it. See
+[docs/webhooks.md](docs/webhooks.md) for supported events, retries, reconciliation,
+and local testing guidance.
 
 ## Frontend Development
 

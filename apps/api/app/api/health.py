@@ -30,7 +30,7 @@ def health() -> HealthResponse:
         service=settings.app_name,
         environment=settings.app_env,
         status="ok",
-        version="0.3.0-phase2",
+        version="0.4.0-phase3",
     )
 
 
@@ -58,7 +58,7 @@ def ready(response: Response) -> ReadinessResponse:
         service=settings.app_name,
         environment=settings.app_env,
         status=overall_status,
-        version="0.3.0-phase2",
+        version="0.4.0-phase3",
         dependencies={
             name: DependencyStatus(status=check.status, detail=check.detail)
             for name, check in checks.items()

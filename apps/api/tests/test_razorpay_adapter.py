@@ -141,6 +141,24 @@ def test_fetch_payment_uses_verified_contract_and_returns_failure_details():
     assert payment.error_source == "bank"
 
 
+def test_fetch_payment_link_uses_verified_contract():
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.method == "GET"
+        assert request.url.path == "/v1/payment_links/plink_contract123"
+        assert_basic_auth(request)
+        response = payment_link_response("paid")
+        response["customer"] = []
+        response["notify"] = {"sms": True, "email": True, "whatsapp": False}
+        response["payments"] = None
+        return httpx.Response(200, json=response)
+
+    with gateway_for(handler) as gateway:
+        payment_link = gateway.get_payment_link("plink_contract123")
+
+    assert payment_link.status is PaymentLinkStatus.PAID
+    assert payment_link.customer == []
+
+
 def test_create_recovery_payment_link_sends_only_supported_fields():
     def handler(request: httpx.Request) -> httpx.Response:
         assert request.method == "POST"

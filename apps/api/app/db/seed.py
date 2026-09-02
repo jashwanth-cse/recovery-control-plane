@@ -18,12 +18,16 @@ def seed_development_data() -> None:
             merchant = Merchant(
                 name="Demo Razorpay Merchant",
                 status="ACTIVE",
+                razorpay_account_id="acc_demo_phase4",
                 razorpay_key_id="rzp_test_demo_reference",
                 secret_reference="env:RAZORPAY_KEY_SECRET",
             )
             session.add(merchant)
             session.commit()
             session.refresh(merchant)
+        elif merchant.razorpay_account_id is None:
+            merchant.razorpay_account_id = "acc_demo_phase4"
+            session.commit()
 
         customer = session.scalar(
             select(Customer).where(

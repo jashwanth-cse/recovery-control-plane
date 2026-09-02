@@ -27,6 +27,7 @@ from app.domain.enums import (
     RecoveryActionStatus,
     RecoveryCaseStatus,
     SourceType,
+    WebhookEventStatus,
 )
 from app.domain.recovery_case import ensure_valid_case_values, ensure_valid_transition
 
@@ -41,10 +42,16 @@ def enum_column(enum_class, length: int):
 
 class Merchant(Base):
     __tablename__ = "merchants"
+    __table_args__ = (
+        UniqueConstraint(
+            "razorpay_account_id", name="uq_merchants_razorpay_account_id"
+        ),
+    )
 
     id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid4)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="ACTIVE")
+    razorpay_account_id: Mapped[str | None] = mapped_column(String(255))
     razorpay_key_id: Mapped[str | None] = mapped_column(String(255))
     secret_reference: Mapped[str | None] = mapped_column(String(255))
     created_at: Mapped[datetime] = mapped_column(
@@ -285,6 +292,9 @@ class PaymentLink(Base):
             name="uq_payment_links_razorpay_payment_link_id",
         ),
         CheckConstraint("amount >= 0", name="ck_payment_links_amount_non_negative"),
+        CheckConstraint(
+            "amount_paid >= 0", name="ck_payment_links_amount_paid_non_negative"
+        ),
     )
 
     id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid4)
@@ -299,6 +309,7 @@ class PaymentLink(Base):
         Uuid(as_uuid=True), ForeignKey("recovery_cases.id")
     )
     amount: Mapped[int] = mapped_column(Integer, nullable=False)
+    amount_paid: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     currency: Mapped[str] = mapped_column(String(3), nullable=False)
     status: Mapped[str] = mapped_column(String(64), nullable=False)
     short_url: Mapped[str | None] = mapped_column(Text)
@@ -463,5 +474,46 @@ class AuditEvent(Base):
     timestamp: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utc_now
     )
+
+    recovery_case: Mapped[RecoveryCase | None] = relationship()
+
+
+class WebhookEvent(Base):
+    __tablename__ = "webhook_events"
+    __table_args__ = (
+        UniqueConstraint(
+            "provider", "event_id", name="uq_webhook_events_provider_event_id"
+        ),
+        CheckConstraint(
+            "processing_attempts >= 0",
+            name="ck_webhook_events_processing_attempts_non_negative",
+        ),
+        Index("ix_webhook_events_status_received", "status", "received_at"),
+        Index("ix_webhook_events_type_resource", "event_type", "resource_id"),
+    )
+
+    id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid4)
+    provider: Mapped[str] = mapped_column(String(32), nullable=False)
+    event_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    event_type: Mapped[str] = mapped_column(String(128), nullable=False)
+    account_id: Mapped[str | None] = mapped_column(String(255))
+    event_created_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    payload: Mapped[dict] = mapped_column(JSON, nullable=False)
+    status: Mapped[WebhookEventStatus] = mapped_column(
+        enum_column(WebhookEventStatus, 16),
+        nullable=False,
+        default=WebhookEventStatus.RECEIVED,
+    )
+    processing_attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    recovery_case_id: Mapped[UUID | None] = mapped_column(
+        Uuid(as_uuid=True), ForeignKey("recovery_cases.id")
+    )
+    resource_id: Mapped[str | None] = mapped_column(String(255))
+    reconciliation_snapshot: Mapped[dict | None] = mapped_column(JSON)
+    last_error: Mapped[str | None] = mapped_column(Text)
+    received_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, default=utc_now
+    )
+    processed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     recovery_case: Mapped[RecoveryCase | None] = relationship()

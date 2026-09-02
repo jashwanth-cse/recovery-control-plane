@@ -13,6 +13,7 @@ on 2026-09-01:
 | --- | --- |
 | `get_order` | `GET /v1/orders/:id` |
 | `get_payment` | `GET /v1/payments/:id` |
+| `get_payment_link` | `GET /v1/payment_links/:id` |
 | `create_payment_link` | `POST /v1/payment_links` |
 | `notify_payment_link` | `POST /v1/payment_links/:id/notify_by/:medium` |
 | `cancel_payment_link` | `POST /v1/payment_links/:id/cancel` |
@@ -23,6 +24,7 @@ Official references:
 - [Fetch an order](https://razorpay.com/docs/api/orders/fetch-with-id/)
 - [Fetch a payment](https://razorpay.com/docs/api/payments/fetch-with-id/)
 - [Create a Standard Payment Link](https://razorpay.com/docs/api/payments/payment-links/create-standard/)
+- [Fetch a Standard Payment Link](https://razorpay.com/docs/api/payments/payment-links/fetch-id-standard/)
 - [Send or resend Payment Link notifications](https://razorpay.com/docs/api/payments/payment-links/resend/)
 - [Cancel a Standard Payment Link](https://razorpay.com/docs/api/payments/payment-links/cancel-standard/)
 

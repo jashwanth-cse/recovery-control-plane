@@ -52,7 +52,7 @@ class OrderDetails(GatewayModel):
     receipt: str | None = None
     status: OrderStatus
     attempts: int = Field(default=0, ge=0)
-    notes: dict[str, Any] = Field(default_factory=dict)
+    notes: dict[str, Any] | list[Any] = Field(default_factory=dict)
     created_at: int | None = Field(default=None, ge=0)
 
 
@@ -78,7 +78,7 @@ class PaymentDetails(GatewayModel):
     vpa: str | None = None
     fee: int | None = Field(default=None, ge=0)
     tax: int | None = Field(default=None, ge=0)
-    notes: dict[str, Any] = Field(default_factory=dict)
+    notes: dict[str, Any] | list[Any] = Field(default_factory=dict)
     created_at: int | None = Field(default=None, ge=0)
 
 
@@ -93,6 +93,17 @@ class PaymentLinkCustomer(GatewayModel):
 class PaymentLinkNotify(GatewayModel):
     model_config = ConfigDict(extra="forbid")
 
+    sms: bool = False
+    email: bool = False
+
+
+class PaymentLinkCustomerResponse(GatewayModel):
+    name: str | None = None
+    contact: str | None = None
+    email: str | None = None
+
+
+class PaymentLinkNotifyResponse(GatewayModel):
     sms: bool = False
     email: bool = False
 
@@ -156,8 +167,8 @@ class PaymentLinkDetails(GatewayModel):
     reference_id: str | None = None
     short_url: str | None = None
     description: str | None = None
-    customer: PaymentLinkCustomer | None = None
-    notify: PaymentLinkNotify | None = None
+    customer: PaymentLinkCustomerResponse | list[Any] | None = None
+    notify: PaymentLinkNotifyResponse | None = None
     accept_partial: bool = False
     first_min_partial_amount: int | None = Field(default=None, ge=0)
     expire_by: int | None = Field(default=None, ge=0)
@@ -167,7 +178,7 @@ class PaymentLinkDetails(GatewayModel):
     updated_at: int | None = Field(default=None, ge=0)
     reminder_enable: bool = False
     notes: dict[str, Any] = Field(default_factory=dict)
-    payments: list[dict[str, Any]] = Field(default_factory=list)
+    payments: list[dict[str, Any]] | None = None
 
 
 class NotificationResult(GatewayModel):

@@ -58,6 +58,11 @@ class RazorpayPaymentGateway:
         payload = self._client.request("GET", f"payments/{resource_id}")
         return _parse_response(PaymentDetails, payload, "fetch payment")
 
+    def get_payment_link(self, payment_link_id: str) -> PaymentLinkDetails:
+        resource_id = _validated_resource_id(payment_link_id, "plink_")
+        payload = self._client.request("GET", f"payment_links/{resource_id}")
+        return _parse_response(PaymentLinkDetails, payload, "fetch payment link")
+
     def create_payment_link(
         self, request: CreatePaymentLinkRequest
     ) -> PaymentLinkDetails:
