@@ -80,7 +80,13 @@ export default function Home() {
   useEffect(() => {
     const controller = new AbortController();
     void loadDashboard(controller.signal);
-    return () => controller.abort();
+    const refreshTimer = window.setInterval(() => {
+      void loadDashboard();
+    }, 3000);
+    return () => {
+      controller.abort();
+      window.clearInterval(refreshTimer);
+    };
   }, [loadDashboard]);
 
   return (
@@ -90,10 +96,15 @@ export default function Home() {
           <span className="product-mark" aria-hidden="true">RC</span>
           <span className="product-name">Revenue Recovery</span>
         </div>
-        <span className={error ? "connection connection-error" : "connection"}>
+        <button
+          className={error ? "connection connection-error" : "connection"}
+          type="button"
+          onClick={() => void loadDashboard()}
+          title="Refresh dashboard"
+        >
           <span aria-hidden="true" />
-          {error ? "Disconnected" : "Live data"}
-        </span>
+          {error ? "Disconnected" : loading ? "Refreshing" : "Live data"}
+        </button>
       </header>
 
       <section className="page-heading">

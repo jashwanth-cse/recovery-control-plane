@@ -18,7 +18,9 @@ button { font: inherit; }
 .product-bar > div { display: flex; align-items: center; gap: 10px; }
 .product-mark { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 6px; background: var(--teal); color: white; font-size: 12px; font-weight: 800; }
 .product-name { font-size: 15px; font-weight: 750; }
-.connection { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 13px; font-weight: 650; }
+.connection { display: flex; align-items: center; gap: 7px; padding: 8px 0; border: 0; background: transparent; color: var(--muted); font-size: 13px; font-weight: 650; cursor: pointer; }
+.connection:hover { color: var(--ink); }
+.connection:focus-visible { outline: 2px solid var(--teal); outline-offset: 3px; }
 .connection > span { width: 8px; height: 8px; border-radius: 50%; background: #159277; }
 .connection-error > span { background: var(--coral); }
 .page-heading { display: flex; align-items: end; justify-content: space-between; gap: 24px; padding: 38px 0 24px; }

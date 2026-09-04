@@ -19,6 +19,17 @@ Say: "The control plane is running with healthy PostgreSQL and Redis dependencie
 The API version is 0.9.0-phase8. Earlier phases ingest payment signals, create
 recovery cases, calculate revenue at risk, and provide a deterministic rule baseline."
 
+Keep the dashboard visible and run this in a second terminal:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/demo-live-feed.ps1 -Count 8 -IntervalSeconds 2 -RunBaseline
+```
+
+Say: "These are labeled synthetic demo signals sent through the real Recovery Case API.
+The dashboard polls every three seconds, so its database-backed totals and queue update
+as each case arrives. The optional baseline then assigns control and treatment groups
+and records recommendations, but does not contact a customer or execute a payment."
+
 ## 2. Explain the leakage boundary
 
 ```powershell
