@@ -195,6 +195,17 @@ fields. `ground_truth.csv` contains potential outcomes and latent probabilities;
 `case_id` is their only shared field. This physical boundary is the first defense
 against model leakage in Phase 8.
 
+## Phase 8 Action-Conditional Model
+
+The `ml` package verifies the Phase 7 manifest and schemas, removes all identifiers
+from model inputs, and splits rows by customer. Four independent gradient-boosted
+classifiers estimate action-conditional probabilities and use cross-validated
+sigmoid calibration.
+
+The serialized artifact contains preprocessing and estimators only. Metadata binds
+the artifact to dataset hashes, configuration, split sizes, metrics, and model
+version. Hidden potential outcomes remain outside the artifact and inference path.
+
 ## Financial Safety Model
 
 No LLM or model may execute arbitrary financial actions. The required sequence is:

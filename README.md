@@ -2,7 +2,7 @@
 
 Revenue Recovery Control Plane is an AI-assisted decision and measurement layer for Razorpay merchants. It is intended to unify revenue-at-risk, recommend economically sensible recovery interventions, gate every financial action through deterministic policy, execute only supported Razorpay Test Mode actions, and measure recovered revenue separately from incremental recovered revenue.
 
-This repository is implemented phase by phase from [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). Phase 0 created the runnable foundation, Phase 1 added the core domain schema and Recovery Case lifecycle, Phase 2 added the bounded Razorpay Test Mode adapter, Phase 3 added verified webhook ingestion, Phase 4 turns eligible monetary signals into persistent Recovery Cases, Phase 5 presents their computed monetary opportunity view, Phase 6 adds a rule-based benchmark, and Phase 7 adds reproducible synthetic counterfactual data.
+This repository is implemented phase by phase from [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md). Phase 0 created the runnable foundation, Phase 1 added the core domain schema and Recovery Case lifecycle, Phase 2 added the bounded Razorpay Test Mode adapter, Phase 3 added verified webhook ingestion, Phase 4 turns eligible monetary signals into persistent Recovery Cases, Phase 5 presents their computed monetary opportunity view, Phase 6 adds a rule-based benchmark, Phase 7 adds synthetic counterfactual data, and Phase 8 trains calibrated action-conditional recovery models.
 
 ## Implemented Scope
 
@@ -85,11 +85,21 @@ Implemented in Phase 7:
 - Deterministic identifiers, rows, manifests, and SHA-256 checksums
 - One-command generation of thousands-scale evaluation datasets
 
+Implemented in Phase 8:
+
+- Strict feature and hidden-label dataset loading with checksum verification
+- Customer-grouped train, validation, and test splits
+- Four calibrated gradient-boosted action-conditional models
+- ROC-AUC, PR-AUC, Brier, log-loss, and calibration evaluation
+- Reproducible model versioning and trusted joblib serialization
+- File-based inference with schema validation
+- Held-out comparison against the Phase 6 rule baseline
+
 Not implemented yet:
 
 - AI/ML decisions, policy engine, and recovery execution
 - Gross and incremental recovered-revenue metrics
-- ML training, model evaluation, and persisted model artifacts
+- Expected-value and next-best-action decision persistence
 
 ## Run Locally
 
@@ -184,6 +194,16 @@ python -m simulator --cases 5000 --seed 42 --output-dir artifacts/simulator
 
 See [docs/simulator.md](docs/simulator.md) for schemas, hidden-ground-truth
 boundaries, assumptions, and reproducibility guarantees.
+
+Train and run inference:
+
+```bash
+python -m ml --dataset-dir artifacts/simulator --output-dir artifacts/model --seed 42
+python -m ml.inference --model artifacts/model/model.joblib --input artifacts/simulator/features.csv --output artifacts/model/predictions.csv
+```
+
+See [docs/ml-model.md](docs/ml-model.md) for the feature boundary, metrics, model
+card, artifact contract, and synthetic baseline comparison.
 
 ## Razorpay Test Mode Adapter
 

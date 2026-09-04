@@ -29,8 +29,8 @@ def create_app() -> FastAPI:
     settings = get_settings()
     app = FastAPI(
         title=settings.app_name,
-        version="0.8.0-phase7",
-        summary="Revenue recovery evaluation with deterministic synthetic data.",
+        version="0.9.0-phase8",
+        summary="Revenue recovery with calibrated action-conditional models.",
         lifespan=lifespan,
     )
 

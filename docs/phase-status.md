@@ -334,3 +334,52 @@ Validated on 2026-09-02:
   host run.
 - Packaged API reported version `0.8.0-phase7`.
 - `git diff --check`.
+
+## Phase 8 - ML Recoverability / Action Model
+
+Status: PASS
+
+Implemented:
+
+- Checksum- and schema-validated Phase 7 dataset loader.
+- Identifier-free feature matrix and customer-grouped train/validation/test split.
+- Calibrated gradient-boosted binary models for no intervention, recovery link,
+  update prompt, and delay.
+- Validation and test ROC-AUC, PR-AUC, Brier, log-loss, expected calibration error,
+  and positive-rate metrics.
+- Reproducible model versions bound to dataset hashes and training configuration.
+- Trusted joblib artifact serialization with artifact checksum.
+- Schema-validated batch inference module and CLI.
+- Held-out model action selection comparison with the Phase 6 rules.
+
+Acceptance criteria:
+
+- Action-conditional probabilities are produced from model-visible features only.
+- Customers never overlap across train, validation, and test.
+- Hidden truth is excluded from feature matrices, artifacts, and inference.
+- Model and metadata artifacts are versioned and loadable for inference.
+- The candidate outperforms the rule baseline or records that it does not.
+
+Reference evaluation on 2026-09-03:
+
+- Dataset: simulator `phase7-v1`, 5,000 cases, seed 42.
+- Split: 3,455 train, 764 validation, 781 test rows with no customer overlap.
+- Test ROC-AUC ranged from 0.6708 to 0.7454 by action.
+- Test expected calibration error ranged from 0.0224 to 0.0331.
+- Rule recovery rate: 35.98%.
+- Model-selected recovery rate: 46.22%.
+- Absolute lift over rules: 10.24 percentage points.
+- Oracle action-selection accuracy: 86.17%.
+- `python -m ml.inference` produced 5,000 probability rows without hidden fields.
+- Focused ML and simulator suite passed (`8 passed`).
+
+Final verification:
+
+- Full regression suite passed (`66 passed`).
+- API, tests, simulator, and ML packages compiled successfully.
+- Alembic remained at head `0005_rule_baseline`; Phase 8 requires no schema change.
+- Web production build and API container image build passed.
+- `docker compose config --quiet` and `git diff --check` passed.
+- A disposable API container generated 600 cases, trained all four action models,
+  and wrote 600 schema-valid inference rows.
+- Packaged API reported version `0.9.0-phase8`.

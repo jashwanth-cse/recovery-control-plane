@@ -10,6 +10,7 @@ RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 COPY apps/api /app/apps/api
 COPY simulator /app/simulator
+COPY ml /app/ml
 COPY migrations /app/migrations
 COPY alembic.ini /app/alembic.ini
 
